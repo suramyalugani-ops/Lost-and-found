@@ -3,6 +3,7 @@ import { ShoppingBag, ArrowRight, FileText, Brain, Bell, CheckCircle, Search, Ma
 import bottleImg from '../assets/Bottle.svg'
 import notebookImg from '../assets/Notebook.svg'
 import walletImg from '../assets/Wallet.svg'
+import logo from '../assets/logo.png'
 
 function Home() {
   const scrollToHowItWorks = () => {
@@ -56,9 +57,12 @@ function Home() {
 
       {/* Navbar */}
       <nav className="relative z-10 flex flex-col md:flex-row justify-between items-center px-4 md:px-10 py-4 bg-white border-b border-gray-200 gap-3 md:gap-0">
-        <div className="text-center md:text-left">
-          <h2 className="font-bold text-lg text-gray-900">404 Not Lost</h2>
-          <p className="text-xs text-gray-500">We find. You get it back.</p>
+        <div className="flex items-center gap-2 text-center md:text-left">
+          <img src={logo} alt="LostLink logo" className="h-10 w-10 object-contain" />
+          <div>
+            <h2 className="font-bold text-lg text-gray-900">LostLink</h2>
+            <p className="text-xs text-gray-500">We find. You get it back.</p>
+          </div>
         </div>
         <div className="flex flex-wrap justify-center items-center gap-3 md:gap-6 text-gray-700 text-sm">
           <Link to="/" className="hover:text-[#FF6D29] transition-colors">Home</Link>

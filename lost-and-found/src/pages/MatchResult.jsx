@@ -22,10 +22,8 @@ function MatchResult() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  // Get item ID from navigation state OR localStorage
-  const itemId =
-    location.state?.itemId ||
-    localStorage.getItem('lastReportId')
+  // itemId should be passed from ReportLost/ReportFound
+  const itemId = location.state?.itemId
 
   // =========================
   // FETCH MATCHES FROM BACKEND
@@ -131,20 +129,16 @@ function MatchResult() {
   }
 
   // =========================
-  // BEST MATCH
+  // NO MATCHES
   // =========================
 
-  const bestMatch =
-    matches.length > 0
-      ? matches[0]
-      : null
+  const bestMatch = matches.length > 0
+    ? matches[0]
+    : null 
 
   const score = bestMatch
-    ? Number(bestMatch.score || 0)
-    : 0
-
-  // Show only 2 decimal places
-  const formattedScore = score.toFixed(2)
+    ? Math.round(Number(bestMatch.score) || 0)
+  : 0
 
   const circumference = 2 * Math.PI * 54
 
@@ -195,6 +189,7 @@ function MatchResult() {
                 )
 
                 alert('Link copied to clipboard!')
+
               }
 
             }}
@@ -268,7 +263,7 @@ function MatchResult() {
 
             <div className="relative flex flex-col md:flex-row items-center gap-8 md:gap-12">
 
-              {/* Circular Progress */}
+              {/* Circular progress */}
 
               <div className="relative w-36 h-36 shrink-0">
 
@@ -300,12 +295,10 @@ function MatchResult() {
 
                 </svg>
 
-                {/* Score inside circle */}
-
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
 
-                  <span className="text-2xl font-bold text-gray-900 whitespace-nowrap">
-                    {formattedScore}%
+                  <span className="text-3xl font-bold text-gray-900">
+                    {score}%
                   </span>
 
                   <span className="text-[11px] text-green-600 font-semibold">
@@ -323,13 +316,11 @@ function MatchResult() {
               <div className="flex-1 w-full bg-white rounded-xl border border-gray-100 shadow-sm p-5">
 
                 <p className="font-bold text-green-600 mb-1">
-
                   {score >= 80
                     ? 'Highly Likely Match'
                     : score >= 60
                     ? 'Possible Match'
                     : 'Low Confidence Match'}
-
                 </p>
 
                 <p className="text-gray-500 text-sm mb-4">
@@ -347,9 +338,7 @@ function MatchResult() {
 
           )}
 
-          {/* =========================
-              CONFIDENCE MESSAGE
-          ========================= */}
+          {/* Confidence message */}
 
           {bestMatch && score >= 70 && (
 
@@ -374,7 +363,7 @@ function MatchResult() {
         </div>
 
         {/* =========================
-            YOUR ITEM + MATCH
+            YOUR ITEM + MATCHES
         ========================= */}
 
         {item && bestMatch && (
@@ -425,47 +414,43 @@ function MatchResult() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-              {matches.slice(1).map((match) => {
+              {matches.slice(1).map((match) => (
 
-                const matchScore =
-                  Number(match.score || 0)
+                <div
+                  key={match.id}
+                  className="bg-gray-50 border border-gray-200 rounded-xl p-5"
+                >
 
-                return (
-                  <div
-                    key={match.id}
-                    className="bg-gray-50 border border-gray-200 rounded-xl p-5"
-                  >
+                  <div className="flex justify-between items-center mb-3">
 
-                    <div className="flex justify-between items-center mb-3">
+                    <span className="text-sm font-semibold text-gray-900">
+                      {match.category}
+                    </span>
 
-                      <span className="text-sm font-semibold text-gray-900">
-                        {match.category}
-                      </span>
-
-                      <span className="text-sm font-bold text-[#FF6D29] whitespace-nowrap">
-                        {matchScore.toFixed(2)}%
-                      </span>
-
-                    </div>
-
-                    <p className="text-sm text-gray-600 mb-1">
-                      <b>Location:</b>{' '}
-                      {match.location}
-                    </p>
-
-                    <p className="text-sm text-gray-600 mb-3">
-                      <b>Date:</b>{' '}
-                      {formatDate(match.date_time)}
-                    </p>
-
-                    <MatchBar
-                      label="Match Score"
-                      percent={matchScore}
-                    />
+                    <span className="text-sm font-bold text-[#FF6D29]">
+                      {Number(match.score || 0)}%
+                    </span>
 
                   </div>
-                )
-              })}
+
+                  <p className="text-sm text-gray-600 mb-1">
+                    <b>Location:</b>{' '}
+                    {match.location}
+                  </p>
+
+                  <p className="text-sm text-gray-600 mb-3">
+                    <b>Date:</b>{' '}
+                    {formatDate(match.date_time)}
+                  </p>
+
+                  <MatchBar
+                    label="Match Score"
+                    percent={Number(match.score || 0)}
+                  />
+
+                </div>
+
+              ))}
 
             </div>
 
@@ -531,7 +516,6 @@ function MatchResult() {
                   alert(
                     'Claim request sent! The finder will be notified.'
                   )
-
                   navigate('/')
                 }}
                 className="bg-green-600 text-white px-5 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 hover:bg-green-700 transition-colors"
@@ -573,8 +557,6 @@ function MatchResult() {
 
 function MatchBar({ label, percent }) {
 
-  const numericPercent = Number(percent || 0)
-
   return (
     <div className="mb-2 last:mb-0">
 
@@ -584,8 +566,8 @@ function MatchBar({ label, percent }) {
           {label}
         </span>
 
-        <span className="text-[#FF6D29] font-semibold whitespace-nowrap">
-          {numericPercent.toFixed(2)}%
+        <span className="text-[#FF6D29] font-semibold">
+          {percent}%
         </span>
 
       </div>
@@ -596,7 +578,7 @@ function MatchBar({ label, percent }) {
           className="bg-[#FF6D29] h-2 rounded-full transition-all"
           style={{
             width: `${Math.min(
-              Math.max(numericPercent, 0),
+              Math.max(percent, 0),
               100
             )}%`,
           }}

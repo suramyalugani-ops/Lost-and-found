@@ -3,11 +3,11 @@ import { Target, Users, Sparkles, ArrowRight } from 'lucide-react'
 
 const team = [
   { name: 'Harshita', role: 'Frontend' },
-  { name: 'Pari', role: 'Frontend' },
-  { name: 'Naina', role: 'Backend' },
   { name: 'Suramya', role: 'Backend' },
-  { name: 'Avantika', role: 'PPT & Presentation' },
-  { name: 'Suhani', role: 'PPT & Presentation' },
+  { name: 'Naina', role: 'AI/DL' },
+  { name: 'Avantika', role: 'PPT & Design' },
+  { name: 'Suhani', role: 'PPT & Design' },
+  { name: 'Pari', role: 'Research' },
 ]
 
 const avatarGradients = [
@@ -26,7 +26,7 @@ function AboutUs() {
       {/* Navbar */}
       <nav className="flex flex-col md:flex-row justify-between items-center px-4 md:px-10 py-4 bg-white border-b border-gray-200 gap-3 md:gap-0">
         <div className="text-center md:text-left">
-          <h2 className="font-bold text-lg text-gray-900">404 Not Lost</h2>
+          <h2 className="font-bold text-lg text-gray-900">LostLink</h2>
           <p className="text-xs text-gray-500">We find. You get it back.</p>
         </div>
         <div className="flex flex-wrap justify-center items-center gap-3 md:gap-6 text-gray-700 text-sm">
@@ -40,7 +40,7 @@ function AboutUs() {
       {/* Header */}
       <div className="text-center px-6 md:px-16 py-12 md:py-16">
         <h1 className="text-2xl md:text-4xl font-bold text-gray-900">
-          About <span className="text-[#FF6D29]">404 Not Lost</span>
+          About <span className="text-[#FF6D29]">LostLink</span>
         </h1>
         <p className="text-gray-600 max-w-xl mx-auto mt-4">
           A student-built project to make finding lost items on campus faster,

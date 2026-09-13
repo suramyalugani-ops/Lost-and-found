@@ -302,7 +302,7 @@ function Reports() {
 
         <div className="text-center md:text-left">
           <h2 className="font-bold text-lg text-gray-900">
-            404 Not Lost
+            LostLink
           </h2>
 
           <p className="text-xs text-gray-500">
