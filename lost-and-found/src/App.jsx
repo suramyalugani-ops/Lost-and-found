@@ -6,6 +6,7 @@ import MatchResult from './pages/MatchResult'
 import AboutUs from './pages/AboutUs'
 import Reports from './pages/Reports'
 import ReportSubmitted from './pages/ReportSubmitted'
+import AdminDashboard from './pages/AdminDashboard'
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
         <Route path="/about" element={<AboutUs />} />
         <Route path="/reports" element={<Reports />} />
         <Route path="/report-submitted" element={<ReportSubmitted />} />
+        <Route path="/admin" element={<AdminDashboard />} />
       </Routes>
     </BrowserRouter>
   )
