@@ -1,167 +1,161 @@
-import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import { ShieldCheck, CheckCircle, XCircle, Clock, ArrowLeft } from 'lucide-react'
-
-const API_URL = 'http://localhost:5000'
+import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { CheckCircle, XCircle, ChevronDown, ShieldCheck } from 'lucide-react'
+import logo from '../assets/logo.png'
 
 function AdminDashboard() {
-  const [items, setItems] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [serverError, setServerError] = useState('')
-  const [verifyStatus, setVerifyStatus] = useState({}) // { itemId: 'verified' | 'rejected' }
-  const [activeClaim, setActiveClaim] = useState(null)
+  const navigate = useNavigate()
+  const [reports, setReports] = useState([])
+  const [filter, setFilter] = useState('all') // all | lost | found | pending
+
+  const [panelOpen, setPanelOpen] = useState(false)
+  const panelRef = useRef(null)
 
   useEffect(() => {
-    fetchItems()
+    function handleClickOutside(e) {
+      if (panelRef.current && !panelRef.current.contains(e.target)) {
+        setPanelOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  const fetchItems = async () => {
-    try {
-      setLoading(true)
-      setServerError('')
-      const response = await fetch(`${API_URL}/api/items`)
-      if (!response.ok) throw new Error('Failed to fetch')
-      const data = await response.json()
-      setItems(data.items || [])
-    } catch (error) {
-      console.error('Fetch items error:', error)
-      setServerError('Unable to load reports. Please make sure the backend is running.')
-    } finally {
-      setLoading(false)
-    }
-  }
+  useEffect(() => {
+    // Replace with your actual Flask endpoint
+    fetch('/api/reports')
+      .then((res) => res.json())
+      .then(setReports)
+      .catch(() => setReports([]))
+  }, [])
 
-  const foundItems = items.filter((i) => i.type?.toLowerCase() === 'found')
+  const filteredReports = reports.filter((r) =>
+    filter === 'all' ? true : r.type === filter || r.status === filter
+  )
 
-  const openClaim = (item) => setActiveClaim(item)
-
-  // Demo-only: updates local state so it looks live in the presentation.
-  // Does not write anything back to the backend/database.
-  const handleDecision = (itemId, decision) => {
-    setVerifyStatus((prev) => ({ ...prev, [itemId]: decision }))
-    setActiveClaim(null)
+  const handleVerify = (id, decision) => {
+    fetch(`/api/reports/${id}/verify`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: decision }),
+    }).then(() => {
+      setReports((prev) =>
+        prev.map((r) => (r.id === id ? { ...r, status: decision } : r))
+      )
+    })
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <nav className="flex items-center justify-between px-4 md:px-10 py-4 border-b border-gray-200">
-        <div className="flex items-center gap-2">
-          <ShieldCheck className="text-[#FF6D29]" size={22} />
-          <h2 className="font-bold text-lg text-gray-900">Admin - LostLink</h2>
-        </div>
-        <Link to="/" className="flex items-center gap-1 text-sm text-gray-600 hover:text-[#FF6D29]">
-          <ArrowLeft size={16} /> Back to site
-        </Link>
-      </nav>
+    <div className="min-h-screen bg-[#FFFBF3] font-['Neue_Montreal',_sans-serif]">
 
-      <div className="px-4 md:px-10 py-8">
-        <p className="text-xs text-gray-400 mb-6">
-          Demo mode - verify actions here are for the presentation only and are not saved to the database yet.
-        </p>
-
-        {loading && <p className="text-gray-500 text-sm">Loading reports...</p>}
-        {serverError && <p className="text-red-500 text-sm">{serverError}</p>}
-
-        {!loading && !serverError && (
-          <>
-            <section className="mb-10">
-              <h3 className="font-semibold text-gray-900 mb-3">Found item reports - verify ownership</h3>
-              <div className="border border-gray-200 rounded-xl overflow-hidden">
-                {foundItems.length === 0 && (
-                  <p className="text-sm text-gray-400 p-4">No found-item reports yet.</p>
-                )}
-                {foundItems.map((item) => {
-                  const status = verifyStatus[item.id] || 'pending'
-                  return (
-                    <div
-                      key={item.id}
-                      className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-4 py-3 border-b border-gray-100 last:border-0"
-                    >
-                      <div>
-                        <p className="font-medium text-gray-900 text-sm">{item.category}</p>
-                        <p className="text-gray-400 text-xs">{item.location} - {item.date_time}</p>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        {status === 'pending' && (
-                          <span className="flex items-center gap-1 text-xs text-yellow-600">
-                            <Clock size={14} /> Pending
-                          </span>
-                        )}
-                        {status === 'verified' && (
-                          <span className="flex items-center gap-1 text-xs text-green-600">
-                            <CheckCircle size={14} /> Verified
-                          </span>
-                        )}
-                        {status === 'rejected' && (
-                          <span className="flex items-center gap-1 text-xs text-red-500">
-                            <XCircle size={14} /> Rejected
-                          </span>
-                        )}
-                        <button
-                          onClick={() => openClaim(item)}
-                          className="text-xs bg-[#FF6D29] text-white px-3 py-1.5 rounded-lg hover:bg-[#e85f20] transition-colors"
-                        >
-                          Review claim
-                        </button>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </section>
-
-            <section>
-              <h3 className="font-semibold text-gray-900 mb-3">All reports</h3>
-              <div className="border border-gray-200 rounded-xl overflow-hidden">
-                {items.map((item) => (
-                  <div key={item.id} className="flex items-center justify-between px-4 py-3 border-b border-gray-100 last:border-0">
-                    <div>
-                      <p className="font-medium text-gray-900 text-sm">{item.category}</p>
-                      <p className="text-gray-400 text-xs">
-                        {item.type?.toUpperCase()} - {item.location} - {item.date_time}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-                {items.length === 0 && <p className="text-sm text-gray-400 p-4">No reports yet.</p>}
-              </div>
-            </section>
-          </>
-        )}
-      </div>
-
-      {/* Review claim panel - demo only, updates local state, no backend write */}
-      {activeClaim && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-30 px-4">
-          <div className="bg-white rounded-xl p-6 w-full max-w-sm">
-            <h4 className="font-semibold text-gray-900 mb-1">Review ownership claim</h4>
-            <p className="text-gray-500 text-sm mb-4">
-              A student has claimed this <span className="font-medium text-gray-700">{activeClaim.category}</span> found
-              at {activeClaim.location}. Confirm the description matches before releasing the item.
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => handleDecision(activeClaim.id, 'rejected')}
-                className="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg text-sm hover:bg-gray-50"
-              >
-                Reject
-              </button>
-              <button
-                onClick={() => handleDecision(activeClaim.id, 'verified')}
-                className="flex-1 bg-[#FF6D29] text-white py-2 rounded-lg text-sm hover:bg-[#e85f20]"
-              >
-                Verify &amp; Approve
-              </button>
-            </div>
-            <button
-              onClick={() => setActiveClaim(null)}
-              className="mt-3 text-xs text-gray-400 hover:text-gray-600 w-full text-center"
-            >
-              Cancel
-            </button>
+      {/* Navbar — same dark-green gradient as the hero, so it reads as "admin" while staying on-brand */}
+      <nav className="flex flex-col md:flex-row justify-between items-center px-4 md:px-10 py-4 bg-[radial-gradient(circle_at_20%_20%,#3f5a44_0%,#1f3324_45%,#14231a_100%)] border-b border-black/10 gap-3 md:gap-0">
+        <div className="flex items-center gap-2 text-center md:text-left">
+          <img src={logo} alt="LostLink logo" className="h-10 w-10 object-contain" />
+          <div>
+            <h2 className="font-bold text-lg text-white">LostLink</h2>
+            <p className="text-xs text-white/60">Admin Console</p>
           </div>
         </div>
-      )}
+
+        <div ref={panelRef} className="relative">
+          <button
+            onClick={() => setPanelOpen((o) => !o)}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-white/85 hover:text-[#FF9A5C] transition-colors text-sm font-medium"
+          >
+            Admin
+            <ChevronDown
+              size={14}
+              className={`transition-transform ${panelOpen ? 'rotate-180' : ''}`}
+            />
+          </button>
+
+          {panelOpen && (
+            <div className="absolute right-0 mt-2 w-36 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-30">
+              <button
+                onClick={() => { navigate('/'); setPanelOpen(false) }}
+                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+              >
+                Student
+              </button>
+              <button
+                onClick={() => { navigate('/admin'); setPanelOpen(false) }}
+                className="w-full text-left px-4 py-2 text-sm bg-orange-50 text-[#FF6D29] font-medium"
+              >
+                Admin
+              </button>
+            </div>
+          )}
+        </div>
+      </nav>
+
+      <div className="px-6 md:px-16 py-10">
+        <div className="flex items-center gap-2 mb-1">
+          <ShieldCheck size={22} className="text-[#FF6D29]" />
+          <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+        </div>
+        <p className="text-gray-500 text-sm mb-6">Review reports and verify ownership</p>
+
+        <div className="flex gap-2 mb-6">
+          {['all', 'lost', 'found', 'pending'].map((f) => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium capitalize ${
+                filter === f
+                  ? 'bg-[#FF6D29] text-white'
+                  : 'bg-white border border-gray-200 text-gray-600'
+              }`}
+            >
+              {f}
+            </button>
+          ))}
+        </div>
+
+        <div className="grid gap-4">
+          {filteredReports.map((report) => (
+            <div
+              key={report.id}
+              className="flex items-center justify-between bg-white rounded-2xl border border-gray-200 p-4 shadow-sm"
+            >
+              <div className="flex items-center gap-4">
+                <img
+                  src={report.photoUrl}
+                  alt={report.itemName}
+                  className="h-14 w-14 rounded-xl object-cover bg-gray-100"
+                />
+                <div>
+                  <p className="font-semibold text-gray-900 text-sm">{report.itemName}</p>
+                  <p className="text-gray-400 text-xs">
+                    {report.type} · {report.location} · {report.status}
+                  </p>
+                </div>
+              </div>
+
+              {report.status === 'pending' && (
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleVerify(report.id, 'approved')}
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-100 text-emerald-700 text-xs font-medium"
+                  >
+                    <CheckCircle size={14} /> Verify
+                  </button>
+                  <button
+                    onClick={() => handleVerify(report.id, 'rejected')}
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-red-100 text-red-700 text-xs font-medium"
+                  >
+                    <XCircle size={14} /> Reject
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+
+          {filteredReports.length === 0 && (
+            <p className="text-gray-400 text-sm text-center py-10">No reports found.</p>
+          )}
+        </div>
+      </div>
     </div>
   )
 }

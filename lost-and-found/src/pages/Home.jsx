@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom'
+import { useState, useRef, useEffect } from 'react'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import {
   ArrowRight,
   FileText,
@@ -6,19 +7,44 @@ import {
   Bell,
   Users,
   ShoppingBag,
-  Wifi,
-  Signal,
-  BatteryFull,
-  Home as HomeIcon,
-  User,
-  Grid3x3,
+  Backpack,
+  Smartphone,
+  Headphones,
+  GlassWater,
+  IdCard,
+  ChevronDown,
 } from 'lucide-react'
 import logo from '../assets/logo.png'
 
 function Home() {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const isAdmin = location.pathname.startsWith('/admin')
+
+  const [panelOpen, setPanelOpen] = useState(false)
+  const panelRef = useRef(null)
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (panelRef.current && !panelRef.current.contains(e.target)) {
+        setPanelOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
   const scrollToHowItWorks = () => {
     document.getElementById('how-it-works').scrollIntoView({ behavior: 'smooth' })
   }
+
+  const orbitItems = [
+    { id: 'backpack', icon: Backpack, top: 12, left: 18, color: 'text-[#FF9A4C]' },
+    { id: 'phone', icon: Smartphone, top: 16, left: 82, color: 'text-slate-200' },
+    { id: 'headphones', icon: Headphones, top: 55, left: 6, color: 'text-white' },
+    { id: 'bottle', icon: GlassWater, top: 62, left: 92, color: 'text-sky-300' },
+    { id: 'id-card', icon: IdCard, top: 90, left: 24, color: 'text-amber-100' },
+  ]
 
   const quickActions = [
     {
@@ -90,7 +116,43 @@ function Home() {
             <p className="text-xs text-gray-500">We find. You get it back.</p>
           </div>
         </div>
+
         <div className="flex flex-wrap justify-center items-center gap-3 md:gap-6 text-gray-700 text-sm">
+          {/* Student/Admin dropdown */}
+          <div ref={panelRef} className="relative">
+            <button
+              onClick={() => setPanelOpen((o) => !o)}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-gray-700 hover:text-[#FF6D29] transition-colors text-sm font-medium"
+            >
+              {isAdmin ? 'Admin' : 'Student'}
+              <ChevronDown
+                size={14}
+                className={`transition-transform ${panelOpen ? 'rotate-180' : ''}`}
+              />
+            </button>
+
+            {panelOpen && (
+              <div className="absolute left-0 mt-2 w-36 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-30">
+                <button
+                  onClick={() => { navigate('/'); setPanelOpen(false) }}
+                  className={`w-full text-left px-4 py-2 text-sm ${
+                    !isAdmin ? 'bg-orange-50 text-[#FF6D29] font-medium' : 'text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  Student
+                </button>
+                <button
+                  onClick={() => { navigate('/admin'); setPanelOpen(false) }}
+                  className={`w-full text-left px-4 py-2 text-sm ${
+                    isAdmin ? 'bg-orange-50 text-[#FF6D29] font-medium' : 'text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  Admin
+                </button>
+              </div>
+            )}
+          </div>
+
           <Link to="/" className="hover:text-[#FF6D29] transition-colors">Home</Link>
           <span onClick={scrollToHowItWorks} className="cursor-pointer hover:text-[#FF6D29] transition-colors">How It Works</span>
           <Link to="/about" className="hover:text-[#FF6D29] transition-colors">About Us</Link>
@@ -101,8 +163,6 @@ function Home() {
       {/* ============ HERO ============ */}
       <div className="relative overflow-hidden">
 
-        {/* Background photo stand-in — replace with a real campus photo import + a
-            bg-cover bg-center style once you have that asset */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,#3f5a44_0%,#1f3324_45%,#14231a_100%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_15%,rgba(255,255,255,0.10),transparent_55%)]" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/25 to-black/60" />
@@ -111,7 +171,6 @@ function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
 
-            {/* Left column: copy */}
             <div className="flex flex-col gap-5">
               <span className="inline-block w-fit text-xs tracking-wide font-semibold text-orange-200 bg-white/10 border border-white/20 px-3 py-1 rounded-full backdrop-blur-sm">
                 Campus Lost &amp; Found
@@ -124,7 +183,7 @@ function Home() {
                 >
                   Lost it? Don't worry! ✏️
                 </p>
-                <h1 className="text-3xl md:text-5xl font-bold text-white leading-tight">
+                <h1 className="font-['Space_Grotesk',_sans-serif] text-3xl md:text-5xl font-bold text-white leading-tight">
                   Lost something?
                   <br />
                   <span className="text-[#FF8A4C]">We've got your back.</span>
@@ -137,10 +196,9 @@ function Home() {
               </p>
             </div>
 
-            {/* Right column: phone mockup */}
-            <div className="relative flex justify-center md:justify-end">
+            <div className="relative flex flex-col items-center md:items-end gap-3 md:gap-1 mt-10 md:mt-2">
               <p
-                className="absolute -top-8 right-2 md:right-6 text-white/80 text-lg rotate-[5deg] text-right hidden md:block"
+                className="text-white/80 text-lg rotate-[5deg] text-right hidden md:block md:pr-4"
                 style={{ fontFamily: "'Caveat', cursive" }}
               >
                 Same campus. Same community.
@@ -148,71 +206,50 @@ function Home() {
                 Bigger impact. ♡
               </p>
 
-              <div className="relative w-64 rotate-[3deg] rounded-[2.2rem] border-[6px] border-neutral-900 bg-neutral-900 shadow-2xl shadow-black/50">
-                {/* status bar */}
-                <div className="flex items-center justify-between px-4 pt-2 pb-1 bg-white rounded-t-[1.6rem] text-[10px] text-gray-900">
-                  <span>9:41</span>
-                  <div className="flex items-center gap-1">
-                    <Signal size={11} />
-                    <Wifi size={11} />
-                    <BatteryFull size={12} />
+              <div className="relative w-72 h-72 md:w-80 md:h-80">
+                <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full">
+                  {orbitItems.map(({ id, top, left }) => (
+                    <line
+                      key={id}
+                      x1="50"
+                      y1="50"
+                      x2={left}
+                      y2={top}
+                      stroke="#FF8A4C"
+                      strokeWidth="0.5"
+                      strokeDasharray="2 2"
+                      opacity="0.45"
+                    />
+                  ))}
+                  <circle cx="50" cy="50" r="34" fill="none" stroke="#FF8A4C" strokeWidth="0.4" opacity="0.25" />
+                  <circle cx="50" cy="50" r="22" fill="none" stroke="#FF8A4C" strokeWidth="0.4" opacity="0.35" strokeDasharray="1.5 2" />
+                </svg>
+
+                {orbitItems.map(({ id, top, left, icon: Icon, color }) => (
+                  <div
+                    key={id}
+                    className="absolute -translate-x-1/2 -translate-y-1/2 h-16 w-16 rounded-2xl bg-white/10 border border-white/25 backdrop-blur-sm flex items-center justify-center shadow-lg shadow-black/30"
+                    style={{ top: `${top}%`, left: `${left}%` }}
+                  >
+                    <Icon size={30} strokeWidth={1.75} className={color} />
+                  </div>
+                ))}
+
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="absolute h-24 w-24 rounded-full bg-[#FF6D29] blur-2xl opacity-40" />
+                  <div className="relative h-20 w-20 rounded-full bg-gradient-to-br from-[#FF6D29] to-[#FF9A5C] flex items-center justify-center shadow-xl shadow-orange-900/50">
+                    <span className="text-white font-bold text-sm tracking-wide">AI</span>
                   </div>
                 </div>
 
-                {/* screen content */}
-                <div className="bg-white px-4 pb-4 pt-2">
-                  <div className="flex items-center gap-1.5 mb-3">
-                    <img src={logo} alt="" className="h-5 w-5 object-contain" />
-                    <span className="text-xs font-bold text-gray-900">LostLink</span>
-                  </div>
-
-                  <p className="text-[13px] font-bold text-gray-900 leading-snug">
-                    Lost something?
-                  </p>
-                  <p className="text-[10px] text-gray-500 mb-2">
-                    Report your lost item and get help from our campus community.
-                  </p>
-
-                  <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-lg p-2 mb-2">
-                    <div className="h-7 w-7 rounded-md bg-[#FF6D29]/15 flex items-center justify-center">
-                      <ShoppingBag size={14} className="text-[#FF6D29]" />
-                    </div>
-                    <div className="text-[9px] text-gray-500 leading-tight">Backpack near library</div>
-                  </div>
-
-                  <button className="w-full bg-[#FF6D29] text-white text-[10px] font-semibold rounded-lg py-2 mb-3">
-                    Report Lost Item →
-                  </button>
-
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-[10px] font-semibold text-gray-900">Recent Found Items</span>
-                    <span className="text-[8px] text-[#FF6D29]">View all</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 mb-3">
-                    <div className="bg-gray-50 rounded-lg p-1.5">
-                      <div className="h-8 rounded bg-gray-200 mb-1" />
-                      <p className="text-[8px] font-medium text-gray-800">Backpack</p>
-                      <p className="text-[7px] text-gray-400">Found at Library</p>
-                    </div>
-                    <div className="bg-gray-50 rounded-lg p-1.5">
-                      <div className="h-8 rounded bg-gray-200 mb-1" />
-                      <p className="text-[8px] font-medium text-gray-800">Earbuds</p>
-                      <p className="text-[7px] text-gray-400">Found at Cafe</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between border-t border-gray-100 pt-2 text-gray-400">
-                    <HomeIcon size={13} className="text-[#FF6D29]" />
-                    <Search size={13} />
-                    <Grid3x3 size={13} />
-                    <User size={13} />
-                  </div>
+                <div className="absolute -bottom-2 right-0 flex items-center gap-2 bg-white/10 border border-white/20 backdrop-blur-sm rounded-full pl-2 pr-3 py-1.5">
+                  <span className="h-2 w-2 rounded-full bg-[#FF8A4C]" />
+                  <span className="text-white/80 text-[11px]">Your item is just a match away</span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Floating quick-action cards */}
           <div className="relative z-20 mt-8 md:mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {quickActions.map(({ to, icon: Icon, iconBg, title, subtitle }) => (
               <Link
@@ -232,7 +269,6 @@ function Home() {
           </div>
         </div>
 
-        {/* Curved transition into the next section */}
         <svg
           className="absolute -bottom-1 left-0 w-full text-[#FFFBF3]"
           viewBox="0 0 1440 90"
